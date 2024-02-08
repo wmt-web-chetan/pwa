@@ -1,25 +1,47 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
-
+import { Routes, Route, Navigate } from "react-router-dom";
+import React, { Suspense, useEffect } from "react";
+import { PublicRoutes, PrivateRoutes } from "./routes";
+import NonAuth from "./components/NonAuthLayout";
+import AuthLayout from "./components/AuthLayout";
 function App() {
+  const isLoggedIn = true;
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Routes>
+      {PublicRoutes.map(({ path, exact, component: Component }) => (
+        <Route
+          key={path}
+          path={path}
+          exact={exact}
+          element={
+            <Suspense fallback="loading">
+              <NonAuth>
+                <Component />
+              </NonAuth>
+            </Suspense>
+          }
+        />
+      ))}
+      <Route path="/" exact element={<AuthLayout />}>
+        {PrivateRoutes.map(({ path, exact, component: Component }) => {
+          return isLoggedIn ? (
+            <Route
+              key={path}
+              path={path}
+              exact={exact}
+              element={<Component />}
+            />
+          ) : (
+            <Route
+              key={path}
+              path={path}
+              exact={exact}
+              element={<Navigate to="/login" />}
+            />
+          );
+        })}
+      </Route>
+    </Routes>
   );
 }
 
